@@ -55,24 +55,26 @@ expect('available = 65536', vlsm.availableAddresses === 65536);
 expect('totalNeeded = 976', vlsm.totalNeeded === 976,
   `got ${vlsm.totalNeeded}`);
 
-// Orden esperado: C=512(/23), B=256(/24), A=128(/25), E=64(/26), D=16(/28).
+// Orden esperado = orden de entrada del usuario (no por tamaño):
+//   A=128(/25), B=256(/24), C=512(/23), D=16(/28), E=64(/26).
 const order = vlsm.requirements.map((r) => `${r.label}:${r.adjusted}/${r.prefix}`);
-expect('orden ajustado',
-  JSON.stringify(order) === JSON.stringify(['C:512/23','B:256/24','A:128/25','E:64/26','D:16/28']),
+expect('orden ajustado (input del usuario)',
+  JSON.stringify(order) === JSON.stringify(['A:128/25','B:256/24','C:512/23','D:16/28','E:64/26']),
   JSON.stringify(order));
 
-// Asignación contigua partiendo de 172.18.0.0 (la red real tras el AND).
+// Asignación contigua partiendo de 172.18.0.0 (la red real tras el AND),
+// respetando el orden de entrada A, B, C, D, E.
 const a = vlsm.assignments;
-expect('C red = 172.18.0.0', a[0].network === '172.18.0.0');
-expect('C broadcast = 172.18.1.255', a[0].broadcast === '172.18.1.255');
-expect('B red = 172.18.2.0', a[1].network === '172.18.2.0');
-expect('B broadcast = 172.18.2.255', a[1].broadcast === '172.18.2.255');
-expect('A red = 172.18.3.0', a[2].network === '172.18.3.0');
-expect('A broadcast = 172.18.3.127', a[2].broadcast === '172.18.3.127');
-expect('E red = 172.18.3.128', a[3].network === '172.18.3.128');
-expect('E broadcast = 172.18.3.191', a[3].broadcast === '172.18.3.191');
-expect('D red = 172.18.3.192', a[4].network === '172.18.3.192');
-expect('D broadcast = 172.18.3.207', a[4].broadcast === '172.18.3.207');
+expect('A red = 172.18.0.0', a[0].network === '172.18.0.0');
+expect('A broadcast = 172.18.0.127', a[0].broadcast === '172.18.0.127');
+expect('B red = 172.18.0.128', a[1].network === '172.18.0.128');
+expect('B broadcast = 172.18.1.127', a[1].broadcast === '172.18.1.127');
+expect('C red = 172.18.1.128', a[2].network === '172.18.1.128');
+expect('C broadcast = 172.18.3.127', a[2].broadcast === '172.18.3.127');
+expect('D red = 172.18.3.128', a[3].network === '172.18.3.128');
+expect('D broadcast = 172.18.3.143', a[3].broadcast === '172.18.3.143');
+expect('E red = 172.18.3.144', a[4].network === '172.18.3.144');
+expect('E broadcast = 172.18.3.207', a[4].broadcast === '172.18.3.207');
 
 // ───────────── Resumen ─────────────
 console.log('\n────────────────────────');

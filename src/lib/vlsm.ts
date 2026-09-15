@@ -2,9 +2,9 @@
  * @file Algoritmo VLSM (Variable Length Subnet Masking).
  *
  * Recibe una IP base con prefijo y una lista de requerimientos de hosts,
- * ajusta cada requerimiento a la potencia de 2 superior, ordena de mayor
- * a menor, valida que el total ajustado quepa en el bloque disponible y
- * asigna subredes contiguas.
+ * ajusta cada requerimiento a la potencia de 2 superior, valida que el
+ * total ajustado quepa en el bloque disponible y asigna subredes contiguas
+ * respetando el orden en que el usuario escribió los requerimientos.
  *
  * Reglas del dominio académico (ver `context.md`, sección 4.B):
  *   - NO se descuentan las 2 direcciones reservadas (red / broadcast).
@@ -59,9 +59,10 @@ function generateLabel(index: number): string {
 }
 
 /**
- * Núcleo del algoritmo VLSM. Valida, ajusta, ordena, verifica capacidad
- * y asigna subredes contiguas. Lanza `VlsmSpaceError` si el espacio no
- * alcanza y `Ipv4Error` ante entradas inválidas.
+ * Núcleo del algoritmo VLSM. Valida, ajusta, verifica capacidad y asigna
+ * subredes contiguas en el orden de entrada del usuario (sin reordenar
+ * por tamaño). Lanza `VlsmSpaceError` si el espacio no alcanza y
+ * `Ipv4Error` ante entradas inválidas.
  *
  * @example
  *   // Caso de prueba del classroom:
@@ -96,7 +97,9 @@ export function calculateVlsm(input: VlsmInput): VlsmPlan {
   const baseNetwork = intToIp(baseIpInt);
   const availableAddresses = 2 ** (32 - prefix);
 
-  // ── Paso 2: ajuste a potencia de 2 ─────────────────────────────────
+  // ── Paso 2: ajuste a potencia de 2 (en orden del usuario) ─────────
+  // Se mantiene el orden de entrada; cada R_i se eleva a la potencia
+  // de 2 inmediatamente superior, sin reordenar por tamaño.
   const adjusted: VlsmRequirement[] = input.requirements.map((req, i) => {
     if (!Number.isInteger(req.hosts) || req.hosts < 1) {
       throw new Ipv4Error(
@@ -114,13 +117,10 @@ export function calculateVlsm(input: VlsmInput): VlsmPlan {
     };
   });
 
-  // ── Paso 3: ordenamiento mayor → menor ─────────────────────────────
-  // (Copiamos antes para no mutar la entrada del usuario.)
-  const sorted = [...adjusted].sort((a, b) => b.adjusted - a.adjusted);
-
-  // ── Paso 4: validación de capacidad ────────────────────────────────
+  // ── Paso 3: validación de capacidad ────────────────────────────────
   // Si la suma ajustada no entra en el bloque, abortamos con error tipado.
-  const totalNeeded = sorted.reduce((acc, r) => acc + r.adjusted, 0);
+  // Ya no ordenamos por tamaño: la asignación respeta el orden del usuario.
+  const totalNeeded = adjusted.reduce((acc, r) => acc + r.adjusted, 0);
   if (totalNeeded > availableAddresses) {
     throw new VlsmSpaceError(
       `Espacio insuficiente: se requieren ${totalNeeded.toLocaleString()} direcciones pero el bloque solo dispone de ${availableAddresses.toLocaleString()}.`,
@@ -129,10 +129,10 @@ export function calculateVlsm(input: VlsmInput): VlsmPlan {
     );
   }
 
-  // ── Paso 5: asignación iterativa contigua ──────────────────────────
+  // ── Paso 4: asignación iterativa contigua (orden del usuario) ─────
   // `currentIp` rastrea la próxima IP libre; avanza `adjusted - 1` cada vez.
   let currentIp = baseIpInt;
-  const assignments: VlsmAssignment[] = sorted.map((req) => {
+  const assignments: VlsmAssignment[] = adjusted.map((req) => {
     const firstIpInt = currentIp;
     const lastIpInt = (firstIpInt + req.adjusted - 1) >>> 0;
     const assignment: VlsmAssignment = {
@@ -156,7 +156,7 @@ export function calculateVlsm(input: VlsmInput): VlsmPlan {
     basePrefix: prefix,
     availableAddresses,
     totalNeeded,
-    requirements: sorted,
+    requirements: adjusted,
     assignments,
   };
 }
