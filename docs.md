@@ -96,12 +96,13 @@ Resultado: 256 subredes `/16`, cada una de 65 536 direcciones.
 2. Para cada requerimiento `R_i`:
    - `S_i = nextPowerOfTwo(R_i)` (potencia de 2 inmediatamente superior).
    - `Prefijo_i = 32 - ceilLog2(S_i)`.
-3. **Orden:** se mantiene el orden en que el usuario escribió los requerimientos. No se reordena por tamaño.
+3. **PACKING:** ordenar la lista ajustada **de mayor a menor** (`S_i` descendente). Esto minimiza la fragmentación interna del bloque (las notas 3 y 4 del classroom siguen este mismo orden).
 4. Sumar todos los `S_i`. Si `suma > espacio disponible` → `throw VlsmSpaceError`.
-5. Asignar iterativamente:
+5. Asignar iterativamente en orden de packing:
    - `red = IP_actual`
    - `broadcast = IP_actual + S_i - 1`
    - `IP_actual = broadcast + 1` (siguiente bloque).
+6. **DISPLAY:** re-ordenar `requirements` y `assignments` por etiqueta alfabética (`localeCompare` con `numeric: true`) para que las tablas de la UI salgan en el orden A, B, C, D… que el usuario espera.
 
 ### 3.3. Caso de prueba (classroom)
 
@@ -117,19 +118,29 @@ Base: `172.18.16.0/16` → espacio disponible = `2^16 = 65 536`.
 
 Suma ajustada = `512 + 256 + 128 + 64 + 16 = 976 ≤ 65 536` → válido.
 
-Asignación contigua respetando **el orden en que el usuario ingresó los requerimientos** (no se reordena por tamaño). La red base `172.18.16.0` se normaliza a `172.18.0.0/16` tras aplicar `AND 255.255.0.0`:
+**Packing interno (mayor → menor)** — la asignación contigua usa este orden:
+
+| Orden de packing | Etiqueta | Red | Broadcast | Prefijo |
+|---|---|---|---|---|
+| 1 | C | `172.18.0.0`   | `172.18.1.255` | `/23` |
+| 2 | B | `172.18.2.0`   | `172.18.2.255` | `/24` |
+| 3 | A | `172.18.3.0`   | `172.18.3.127` | `/25` |
+| 4 | E | `172.18.3.128` | `172.18.3.191` | `/26` |
+| 5 | D | `172.18.3.192` | `172.18.3.207` | `/28` |
+
+**Display final (alfabético por etiqueta)** — la UI muestra las filas en este orden, pero las redes asignadas son las del packing:
 
 | Etiqueta | Red | Broadcast | Prefijo |
 |---|---|---|---|
-| A | `172.18.0.0`   | `172.18.0.127` | `/25` |
-| B | `172.18.0.128` | `172.18.1.127` | `/24` |
-| C | `172.18.1.128` | `172.18.3.127` | `/23` |
-| D | `172.18.3.128` | `172.18.3.143` | `/28` |
-| E | `172.18.3.144` | `172.18.3.207` | `/26` |
+| A | `172.18.3.0`   | `172.18.3.127` | `/25` |
+| B | `172.18.2.0`   | `172.18.2.255` | `/24` |
+| C | `172.18.0.0`   | `172.18.1.255` | `/23` |
+| D | `172.18.3.192` | `172.18.3.207` | `/28` |
+| E | `172.18.3.128` | `172.18.3.191` | `/26` |
 
 > El algoritmo **siempre** aplica `AND` entre la IP ingresada y la máscara del prefijo (de clase A/B/C o provisto). Esto es coherente con el paso 5 de `context.md` ("Operación AND: Obtener la dirección IP de red inicial") y con las notas de clase 3 y 4. Si la IP no está alineada al prefijo, se normaliza a la red base correspondiente.
 >
-> Las asignaciones respetan el orden en que el usuario escribió los requerimientos (A, B, C, D, E), no se reordenan por tamaño. La validación de espacio (`suma ≤ disponible`) y el ajuste a potencia de 2 sí se siguen aplicando.
+> **Cálculo vs Display:** el cálculo (packing) ordena por tamaño descendente para minimizar fragmentación. El display (UI) re-ordena por etiqueta alfabética para que las filas salgan A, B, C, D. Las redes asignadas son las del packing óptimo; solo cambia el orden en que se presentan.
 
 ---
 

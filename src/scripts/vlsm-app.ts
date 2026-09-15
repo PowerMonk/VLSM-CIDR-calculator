@@ -141,7 +141,7 @@ function renderRequirements(plan: VlsmPlan): string {
     )
     .join('');
   return `
-    <h3 class="text-base font-semibold mt-6 mb-2">Paso 2 — Ajuste a potencia de 2 (en orden de entrada)</h3>
+    <h3 class="text-base font-semibold mt-6 mb-2">Paso 2 — Ajuste a potencia de 2 (en orden alfabético)</h3>
     <div class="overflow-x-auto mb-2">
       <table class="minimal">
         <thead>

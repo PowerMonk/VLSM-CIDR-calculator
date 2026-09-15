@@ -13,8 +13,9 @@
   <h2 class="text-xl font-semibold mb-1">Máscara de longitud variable (VLSM)</h2>
   <p class="text-sm text-muted mb-6">
     Define la IP base con su prefijo y agrega los requerimientos de hosts por subred.
-    El algoritmo ajusta cada valor a la potencia de 2 superior y asigna rangos
-    contiguos en el orden en que fueron escritos.
+    El algoritmo ajusta cada valor a la potencia de 2 superior y empaca los
+    bloques contiguos de mayor a menor; la tabla final los muestra en orden
+    alfabético por etiqueta (A, B, C, D…).
   </p>
 
   <form id="vlsm-form" class="grid gap-4">

@@ -51,7 +51,7 @@ export interface FixedSubnet {
  * Resultado de un cálculo VLSM exitoso.
  *
  * Contiene tres "vistas":
- *   - `requirements` : la tabla original ya ajustada, en el orden de entrada.
+ *   - `requirements` : ajuste por potencia de 2, en orden alfabético (A, B, C…).
  *   - `assignments`  : la tabla final con redes asignadas (paso 4).
  *   - `summary`      : datos agregados del espacio total.
  */
@@ -60,7 +60,7 @@ export interface VlsmPlan {
   basePrefix: number;
   availableAddresses: number;
   totalNeeded: number;
-  /** Lista (en orden de entrada del usuario) con el ajuste a potencia de 2. */
+  /** Lista (en orden alfabético por etiqueta) con el ajuste a potencia de 2. */
   requirements: VlsmRequirement[];
   /** Asignaciones finales (en el mismo orden que `requirements`). */
   assignments: VlsmAssignment[];

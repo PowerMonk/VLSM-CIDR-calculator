@@ -17,9 +17,15 @@ distributable/
 2. Doble clic en **`abrir-calculadora.bat`**.
 3. Se abrirá `dist/index.html` en tu navegador predeterminado.
 
-## Cambio reciente: VLSM en orden de entrada
+## VLSM: packing eficiente + display alfabético
 
-A partir de esta versión, VLSM asigna las subredes **en el orden que escribiste los requerimientos** (A, B, C, D, E), no de mayor a menor.
+- El **cálculo** ordena los requerimientos **de mayor a menor** (packing
+  eficiente, como en las notas del classroom: primero el bloque más
+  grande, después el siguiente, etc.).
+- La **tabla de resultados** muestra las filas en **orden alfabético**
+  por etiqueta (A, B, C, D, E…), no en orden de entrada ni de tamaño.
+
+Las redes asignadas vienen del packing óptimo; solo cambia el orden visual.
 
 ## ¿Por qué esta versión sí funciona bajo `file://`?
 
@@ -34,12 +40,11 @@ requests cruzados ni imports entre módulos.
 
 ## ¿Por qué el .bat no usa `?v=RANDOM` para forzar recarga?
 
-Versiones anteriores del `.bat` agregaban `?v=%RANDOM%` al URL como
-cache-buster. **No funciona**: el comando `start` de Windows trata
-`?` como un wildcard en el nombre del archivo y termina mostrando
-"Windows no puede encontrar el HTML". Por eso el `.bat` ahora abre
-directamente `dist\index.html`. Si el navegador te sirve una versión
-vieja por caché, hacé **Ctrl+Shift+R** (hard refresh) una sola vez.
+El comando `start` de Windows interpreta `?` como wildcard en el nombre del
+archivo y termina mostrando "Windows no puede encontrar el HTML". Por eso
+el `.bat` ahora abre directamente `dist\index.html`. Si el navegador te
+sirve una versión vieja por caché, hacé **Ctrl+Shift+R** (hard refresh)
+una sola vez.
 
 ## Reconstruir (opcional)
 

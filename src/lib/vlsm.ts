@@ -1,10 +1,13 @@
 /**
  * @file Algoritmo VLSM (Variable Length Subnet Masking).
  *
- * Recibe una IP base con prefijo y una lista de requerimientos de hosts,
- * ajusta cada requerimiento a la potencia de 2 superior, valida que el
- * total ajustado quepa en el bloque disponible y asigna subredes contiguas
- * respetando el orden en que el usuario escribió los requerimientos.
+ * Dos vistas separadas:
+ *   1) Cálculo (packing): ordena por tamaño descendente y asigna
+ *      contiguamente para minimizar fragmentación.
+ *   2) Salida (display): re-ordena por etiqueta alfabética (A, B, C...)
+ *      para que las tablas de la UI muestren las filas en el orden
+ *      que el usuario espera, aunque los rangos asignados correspondan
+ *      al packing óptimo.
  *
  * Reglas del dominio académico (ver `context.md`, sección 4.B):
  *   - NO se descuentan las 2 direcciones reservadas (red / broadcast).
@@ -59,13 +62,19 @@ function generateLabel(index: number): string {
 }
 
 /**
- * Núcleo del algoritmo VLSM. Valida, ajusta, verifica capacidad y asigna
- * subredes contiguas en el orden de entrada del usuario (sin reordenar
- * por tamaño). Lanza `VlsmSpaceError` si el espacio no alcanza y
- * `Ipv4Error` ante entradas inválidas.
+ * Núcleo del algoritmo VLSM.
+ *
+ * - Valida entradas.
+ * - Ajusta cada requerimiento a la potencia de 2 superior.
+ * - Valida capacidad (lanza `VlsmSpaceError` si no entra).
+ * - PACKING: ordena por tamaño descendente y asigna contiguamente
+ *   (minimiza fragmentación, como en las notas del classroom).
+ * - DISPLAY: re-ordena `requirements` y `assignments` por etiqueta
+ *   alfabética para que las tablas de la UI salgan A, B, C, D, E.
+ *
+ * Lanza `Ipv4Error` ante entradas inválidas.
  *
  * @example
- *   // Caso de prueba del classroom:
  *   calculateVlsm({
  *     baseNetwork: '172.18.16.0/16',
  *     requirements: [
@@ -76,7 +85,8 @@ function generateLabel(index: number): string {
  *       { label: 'E', hosts: 50 },
  *     ],
  *   });
- *   // → C:512 /23, B:256 /24, A:128 /25, E:64 /26, D:16 /28.
+ *   // packing (mayor→menor):  C /23, B /24, A /25, E /26, D /28
+ *   // display (alfabético):  A → /25, B → /24, C → /23, D → /28, E → /26
  */
 export function calculateVlsm(input: VlsmInput): VlsmPlan {
   if (!input.requirements || input.requirements.length === 0) {
@@ -97,9 +107,7 @@ export function calculateVlsm(input: VlsmInput): VlsmPlan {
   const baseNetwork = intToIp(baseIpInt);
   const availableAddresses = 2 ** (32 - prefix);
 
-  // ── Paso 2: ajuste a potencia de 2 (en orden del usuario) ─────────
-  // Se mantiene el orden de entrada; cada R_i se eleva a la potencia
-  // de 2 inmediatamente superior, sin reordenar por tamaño.
+  // ── Paso 2: ajuste a potencia de 2 (en orden de entrada del usuario)
   const adjusted: VlsmRequirement[] = input.requirements.map((req, i) => {
     if (!Number.isInteger(req.hosts) || req.hosts < 1) {
       throw new Ipv4Error(
@@ -118,8 +126,6 @@ export function calculateVlsm(input: VlsmInput): VlsmPlan {
   });
 
   // ── Paso 3: validación de capacidad ────────────────────────────────
-  // Si la suma ajustada no entra en el bloque, abortamos con error tipado.
-  // Ya no ordenamos por tamaño: la asignación respeta el orden del usuario.
   const totalNeeded = adjusted.reduce((acc, r) => acc + r.adjusted, 0);
   if (totalNeeded > availableAddresses) {
     throw new VlsmSpaceError(
@@ -129,10 +135,12 @@ export function calculateVlsm(input: VlsmInput): VlsmPlan {
     );
   }
 
-  // ── Paso 4: asignación iterativa contigua (orden del usuario) ─────
-  // `currentIp` rastrea la próxima IP libre; avanza `adjusted - 1` cada vez.
+  // ── Paso 4: PACKING — ordenar por tamaño descendente y asignar ────
+  // Empezar por los mas grandes minimiza la fragmentacion interna
+  // (las notas 3 y 4 del classroom siguen este orden).
+  const forPacking = [...adjusted].sort((a, b) => b.adjusted - a.adjusted);
   let currentIp = baseIpInt;
-  const assignments: VlsmAssignment[] = adjusted.map((req) => {
+  const packed: VlsmAssignment[] = forPacking.map((req) => {
     const firstIpInt = currentIp;
     const lastIpInt = (firstIpInt + req.adjusted - 1) >>> 0;
     const assignment: VlsmAssignment = {
@@ -151,12 +159,29 @@ export function calculateVlsm(input: VlsmInput): VlsmPlan {
     return assignment;
   });
 
+  // ── Paso 5: DISPLAY — re-ordenar alfabéticamente por etiqueta ──────
+  // Tanto `requirements` como `assignments` se devuelven ordenados por
+  // etiqueta para que la UI muestre las filas en orden logico (A, B, C, ...).
+  // Las redes asignadas ya son las del packing optimo, solo cambia el orden.
+  const byLabel = (a: string, b: string) =>
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+
+  // Indexamos packed por label para no perder la asignacion calculada.
+  const packedByLabel = new Map(packed.map((a) => [a.label, a]));
+
+  const requirementsByLabel = [...adjusted].sort((a, b) =>
+    byLabel(a.label, b.label),
+  );
+  const assignmentsByLabel = requirementsByLabel.map(
+    (req) => packedByLabel.get(req.label)!,
+  );
+
   return {
     baseNetwork,
     basePrefix: prefix,
     availableAddresses,
     totalNeeded,
-    requirements: adjusted,
-    assignments,
+    requirements: requirementsByLabel,
+    assignments: assignmentsByLabel,
   };
 }

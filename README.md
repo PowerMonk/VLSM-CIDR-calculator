@@ -5,7 +5,7 @@ Calculadora 100% **client-side** para subnetting fijo (CIDR) y máscara de longi
 ## Características
 
 - **CIDR** (subnetting fijo): ingresa una IP (con o sin prefijo) y la cantidad `K` de subredes deseadas; la calculadora determina los bits prestados, el nuevo prefijo y genera todas las subredes contiguas.
-- **VLSM** (máscara variable): ingresa una IP base con prefijo y una lista de requerimientos de hosts; la calculadora ajusta cada requerimiento a la potencia de 2 superior, valida el espacio y asigna subredes contiguas en el **orden en que fueron escritos**.
+- **VLSM** (máscara variable): ingresa una IP base con prefijo y una lista de requerimientos de hosts; la calculadora ajusta cada requerimiento a la potencia de 2 superior, ordena **de mayor a menor** para el packing óptimo y muestra las asignaciones finales en **orden alfabético** por etiqueta (A, B, C, D…).
 - **Exportación** a CSV o TXT.
 - **Ejemplos del classroom** pre-cargados con un clic.
 - Cero dependencias de servidor: una vez hecho el build, basta abrir `dist/index.html`.
