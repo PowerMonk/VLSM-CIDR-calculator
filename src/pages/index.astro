@@ -1,0 +1,29 @@
+---
+// Pagina principal.
+// Compone el layout, el titulo, las pestanas y los dos modulos.
+// El bloque script al final activa las pestanas (initTabs).
+import Layout from '../layouts/Layout.astro';
+import Tabs from '../components/Tabs.astro';
+import CidrCalculator from '../components/CidrCalculator.astro';
+import VlsmCalculator from '../components/VlsmCalculator.astro';
+---
+
+<Layout>
+  <header class="mb-8">
+    <h1 class="text-3xl font-semibold tracking-tight">Calculadora CIDR &amp; VLSM</h1>
+    <p class="text-muted mt-2 text-sm">
+      Subnetting fijo y máscara de longitud variable en el navegador, sin servidor.
+      Escribe una IP (y opcionalmente un prefijo) y la cantidad de subredes o
+      requerimientos de hosts; la calculadora hace el resto.
+    </p>
+  </header>
+
+  <Tabs />
+  <CidrCalculator />
+  <VlsmCalculator />
+
+  <script>
+    import { initTabs } from '../scripts/tabs';
+    initTabs();
+  </script>
+</Layout>

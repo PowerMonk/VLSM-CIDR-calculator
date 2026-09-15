@@ -1,0 +1,20 @@
+---
+// Pestanas CIDR / VLSM. Solo markup: el highlight y la conmutacion de
+// paneles las maneja src/scripts/tabs.ts mediante la clase .active en
+// el boton y .hidden en el panel.
+---
+
+<div class="tabs" role="tablist" aria-label="Módulos">
+  <button
+    type="button"
+    role="tab"
+    data-tab-trigger="cidr"
+    aria-selected="true"
+  >CIDR (subnetting fijo)</button>
+  <button
+    type="button"
+    role="tab"
+    data-tab-trigger="vlsm"
+    aria-selected="false"
+  >VLSM (máscara variable)</button>
+</div>

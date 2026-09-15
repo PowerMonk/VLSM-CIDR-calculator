@@ -1,0 +1,62 @@
+---
+// Modulo VLSM: formulario dinamico + contenedor de resultados.
+// El bloque script al final importa vlsm-app.ts (initVlsm), que se
+// encarga de anadir/quitar filas, validar y renderizar.
+---
+
+<section
+  id="panel-vlsm"
+  data-tab-panel="vlsm"
+  class="tab-panel mt-6 hidden"
+  role="tabpanel"
+>
+  <h2 class="text-xl font-semibold mb-1">Máscara de longitud variable (VLSM)</h2>
+  <p class="text-sm text-muted mb-6">
+    Define la IP base con su prefijo y agrega los requerimientos de hosts por subred.
+    El algoritmo ajusta cada valor a la potencia de 2 superior, ordena de mayor a menor
+    y asigna rangos contiguos.
+  </p>
+
+  <form id="vlsm-form" class="grid gap-4">
+    <label class="flex flex-col text-sm max-w-md">
+      <span class="mb-1">IP base con prefijo</span>
+      <input
+        id="vlsm-base"
+        name="baseNetwork"
+        type="text"
+        inputmode="numeric"
+        placeholder="172.18.16.0/16"
+        autocomplete="off"
+        required
+      />
+    </label>
+
+    <div>
+      <div class="text-sm mb-2">Requerimientos de hosts</div>
+      <div id="vlsm-requirements" class="grid gap-2"></div>
+      <button id="vlsm-add-row" type="button" class="btn btn-ghost mt-3">
+        + Añadir requerimiento
+      </button>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <button type="submit" class="btn btn-primary">Calcular</button>
+      <button id="vlsm-example" type="button" class="btn btn-ghost">
+        Cargar ejemplo del classroom
+      </button>
+      <button id="vlsm-download-csv" type="button" class="btn btn-secondary" disabled>
+        Descargar CSV
+      </button>
+      <button id="vlsm-download-txt" type="button" class="btn btn-secondary" disabled>
+        Descargar TXT
+      </button>
+    </div>
+  </form>
+
+  <div id="vlsm-results" class="mt-8"></div>
+</section>
+
+<script>
+  import { initVlsm } from '../scripts/vlsm-app';
+  initVlsm();
+</script>

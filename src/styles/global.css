@@ -1,0 +1,225 @@
+/*
+ * Estilos globales de la Calculadora CIDR/VLSM.
+ *
+ * Filosofía visual:
+ *   - Minimalista blanco y negro.
+ *   - Acentos suaves (rosa pálido y azul sobrio) SOLO donde aportan señal:
+ *       * Botones primarios         → rosa (`--color-accent`).
+ *       * Prefijos /24, /16...      → azul (`--color-info`).
+ *       * Resaltar filas de cálculo → rosa muy claro (`--color-accent-soft`).
+ *   - Sin gradientes, sin neón, sin sombras pesadas.
+ *
+ * El sistema se monta sobre Tailwind 4 vía `@import "tailwindcss";`
+ * y se extiende en `@theme {...}` con los tokens de marca.
+ */
+
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0a0a0a;
+  --color-paper: #fafafa;
+  --color-paper-2: #ffffff;
+  --color-line: #e5e5e5;
+  --color-muted: #737373;
+
+  --color-accent: #ec4899;
+  --color-accent-soft: #fce7f3;
+  --color-accent-strong: #db2777;
+
+  --color-info: #2563eb;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+}
+
+/* ───────── Base global ───────── */
+html,
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hace que los inputs y botones respeten la paleta minimalista. */
+input,
+select,
+textarea {
+  background-color: var(--color-paper-2);
+  border: 1px solid var(--color-line);
+  color: var(--color-ink);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+/* ───────── Botones reutilizables ───────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    border-color 120ms ease;
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+}
+.btn-primary:hover {
+  background-color: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+.btn-secondary:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper-2);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-muted);
+  border-color: var(--color-line);
+}
+.btn-ghost:hover {
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+.btn-danger {
+  background-color: transparent;
+  color: #b91c1c;
+  border-color: #b91c1c;
+}
+.btn-danger:hover {
+  background-color: #b91c1c;
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ───────── Tablas ───────── */
+table.minimal {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+table.minimal th,
+table.minimal td {
+  border: 1px solid var(--color-line);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+table.minimal thead {
+  background-color: var(--color-ink);
+  color: var(--color-paper-2);
+}
+table.minimal tbody tr:nth-child(even) {
+  background-color: var(--color-paper-2);
+}
+table.minimal tbody tr:hover {
+  background-color: var(--color-accent-soft);
+}
+
+/* Resalta los prefijos /N en azul sobrio. */
+.prefix {
+  color: var(--color-info);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+/* Resalta errores. */
+.alert-error {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+
+.alert-ok {
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+
+.alert-info {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+}
+
+/* ───────── Tabs (estado puro CSS, sin JS para el highlight) ───────── */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.tabs button {
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.tabs button:hover {
+  color: var(--color-ink);
+}
+
+.tabs button.active {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-accent);
+}
+
+/* Paneles asociados a tabs: se ocultan/muestran con la clase .hidden. */
+.tab-panel {
+  display: block;
+}
+.tab-panel.hidden {
+  display: none;
+}

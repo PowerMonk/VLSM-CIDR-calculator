@@ -1,0 +1,84 @@
+---
+// Modulo CIDR: formulario + contenedor de resultados.
+// El bloque script al final del archivo importa cidr-app.ts (initCidr).
+// Toda la logica vive en TS (src/lib + src/scripts); aqui solo markup.
+---
+
+<section
+  id="panel-cidr"
+  data-tab-panel="cidr"
+  class="tab-panel mt-6"
+  role="tabpanel"
+>
+  <h2 class="text-xl font-semibold mb-1">Subnetting fijo (CIDR)</h2>
+  <p class="text-sm text-muted mb-6">
+    Ingresa una IP base y la cantidad de subredes que necesitas. Si omites el prefijo,
+    se detecta automáticamente por la clase A/B/C.
+  </p>
+
+  <form id="cidr-form" class="grid gap-3 md:grid-cols-[2fr_1fr_1fr_auto] items-end">
+    <label class="flex flex-col text-sm">
+      <span class="mb-1">Dirección IPv4</span>
+      <input
+        id="cidr-ip"
+        name="ip"
+        type="text"
+        inputmode="numeric"
+        placeholder="38.120.32.110"
+        autocomplete="off"
+        required
+      />
+    </label>
+
+    <label class="flex flex-col text-sm">
+      <span class="mb-1">Prefijo (opcional)</span>
+      <input
+        id="cidr-prefix"
+        name="prefix"
+        type="number"
+        min="0"
+        max="32"
+        step="1"
+        placeholder="auto"
+        autocomplete="off"
+      />
+    </label>
+
+    <label class="flex flex-col text-sm">
+      <span class="mb-1">Cantidad de subredes (K)</span>
+      <input
+        id="cidr-k"
+        name="k"
+        type="number"
+        min="1"
+        step="1"
+        placeholder="200"
+        autocomplete="off"
+        required
+      />
+    </label>
+
+    <div class="flex gap-2">
+      <button type="submit" class="btn btn-primary">Calcular</button>
+    </div>
+
+    <div class="md:col-span-4 flex flex-wrap gap-2 mt-1">
+      <button id="cidr-example" type="button" class="btn btn-ghost">
+        Cargar ejemplo del classroom
+      </button>
+      <button id="cidr-download-csv" type="button" class="btn btn-secondary" disabled>
+        Descargar CSV
+      </button>
+      <button id="cidr-download-txt" type="button" class="btn btn-secondary" disabled>
+        Descargar TXT
+      </button>
+    </div>
+  </form>
+
+  <div id="cidr-results" class="mt-8"></div>
+</section>
+
+<script>
+  import { initCidr } from '../scripts/cidr-app';
+  initCidr();
+</script>
