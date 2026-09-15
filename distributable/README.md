@@ -19,7 +19,7 @@ distributable/
 
 ## Cambio reciente: VLSM en orden de entrada
 
-A partir de esta versión, VLSM asigna las subredes **en el orden que escribiste los requerimientos** (A, B, C, D, E), no de mayor a menor. El ajuste a potencia de 2 y la validación de capacidad se siguen aplicando.
+A partir de esta versión, VLSM asigna las subredes **en el orden que escribiste los requerimientos** (A, B, C, D, E), no de mayor a menor.
 
 ## ¿Por qué esta versión sí funciona bajo `file://`?
 
@@ -32,10 +32,14 @@ El `dist/index.html` de esta versión tiene **todo el JavaScript inlineado en
 un único `<script type="module">`** dentro del propio HTML, así que no hay
 requests cruzados ni imports entre módulos.
 
-Además, trae **meta tags `Cache-Control: no-cache`** para evitar servir una
-versión vieja desde la caché del navegador, y el `.bat` agrega un
-**query-string `?v=RANDOM`** al URL para forzar que cada corrida sea
-tratada como nueva (anti-cache adicional).
+## ¿Por qué el .bat no usa `?v=RANDOM` para forzar recarga?
+
+Versiones anteriores del `.bat` agregaban `?v=%RANDOM%` al URL como
+cache-buster. **No funciona**: el comando `start` de Windows trata
+`?` como un wildcard en el nombre del archivo y termina mostrando
+"Windows no puede encontrar el HTML". Por eso el `.bat` ahora abre
+directamente `dist\index.html`. Si el navegador te sirve una versión
+vieja por caché, hacé **Ctrl+Shift+R** (hard refresh) una sola vez.
 
 ## Reconstruir (opcional)
 
