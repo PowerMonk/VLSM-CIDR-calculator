@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="es"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="Calculadora client-side para subnetting fijo (CIDR) y máscara de longitud variable (VLSM)."><meta name="generator" content="Astro v5.18.2"><title>Calculadora CIDR &amp; VLSM</title><link rel="stylesheet" href="./_astro/index.DxANR1u9.css"></head> <body class="min-h-screen"> <main class="mx-auto max-w-5xl px-4 py-10">  <header class="mb-8"> <h1 class="text-3xl font-semibold tracking-tight">Calculadora CIDR &amp; VLSM</h1> <p class="text-muted mt-2 text-sm">
+Subnetting fijo y máscara de longitud variable en el navegador, sin servidor.
+      Escribe una IP (y opcionalmente un prefijo) y la cantidad de subredes o
+      requerimientos de hosts; la calculadora hace el resto.
+</p> </header> <div class="tabs" role="tablist" aria-label="Módulos"> <button type="button" role="tab" data-tab-trigger="cidr" aria-selected="true">CIDR (subnetting fijo)</button> <button type="button" role="tab" data-tab-trigger="vlsm" aria-selected="false">VLSM (máscara variable)</button> </div> <section id="panel-cidr" data-tab-panel="cidr" class="tab-panel mt-6" role="tabpanel"> <h2 class="text-xl font-semibold mb-1">Subnetting fijo (CIDR)</h2> <p class="text-sm text-muted mb-6">
+Ingresa una IP base y la cantidad de subredes que necesitas. Si omites el prefijo,
+    se detecta automáticamente por la clase A/B/C.
+</p> <form id="cidr-form" class="grid gap-3 md:grid-cols-[2fr_1fr_1fr_auto] items-end"> <label class="flex flex-col text-sm"> <span class="mb-1">Dirección IPv4</span> <input id="cidr-ip" name="ip" type="text" inputmode="numeric" placeholder="38.120.32.110" autocomplete="off" required> </label> <label class="flex flex-col text-sm"> <span class="mb-1">Prefijo (opcional)</span> <input id="cidr-prefix" name="prefix" type="number" min="0" max="32" step="1" placeholder="auto" autocomplete="off"> </label> <label class="flex flex-col text-sm"> <span class="mb-1">Cantidad de subredes (K)</span> <input id="cidr-k" name="k" type="number" min="1" step="1" placeholder="200" autocomplete="off" required> </label> <div class="flex gap-2"> <button type="submit" class="btn btn-primary">Calcular</button> </div> <div class="md:col-span-4 flex flex-wrap gap-2 mt-1"> <button id="cidr-example" type="button" class="btn btn-ghost">
+Cargar ejemplo del classroom
+</button> <button id="cidr-download-csv" type="button" class="btn btn-secondary" disabled>
+Descargar CSV
+</button> <button id="cidr-download-txt" type="button" class="btn btn-secondary" disabled>
+Descargar TXT
+</button> </div> </form> <div id="cidr-results" class="mt-8"></div> </section> <script type="module" src="./_astro/CidrCalculator.astro_astro_type_script_index_0_lang.B4JcpSj2.js"></script> <section id="panel-vlsm" data-tab-panel="vlsm" class="tab-panel mt-6 hidden" role="tabpanel"> <h2 class="text-xl font-semibold mb-1">Máscara de longitud variable (VLSM)</h2> <p class="text-sm text-muted mb-6">
+Define la IP base con su prefijo y agrega los requerimientos de hosts por subred.
+    El algoritmo ajusta cada valor a la potencia de 2 superior, ordena de mayor a menor
+    y asigna rangos contiguos.
+</p> <form id="vlsm-form" class="grid gap-4"> <label class="flex flex-col text-sm max-w-md"> <span class="mb-1">IP base con prefijo</span> <input id="vlsm-base" name="baseNetwork" type="text" inputmode="numeric" placeholder="172.18.16.0/16" autocomplete="off" required> </label> <div> <div class="text-sm mb-2">Requerimientos de hosts</div> <div id="vlsm-requirements" class="grid gap-2"></div> <button id="vlsm-add-row" type="button" class="btn btn-ghost mt-3">
++ Añadir requerimiento
+</button> </div> <div class="flex flex-wrap gap-2"> <button type="submit" class="btn btn-primary">Calcular</button> <button id="vlsm-example" type="button" class="btn btn-ghost">
+Cargar ejemplo del classroom
+</button> <button id="vlsm-download-csv" type="button" class="btn btn-secondary" disabled>
+Descargar CSV
+</button> <button id="vlsm-download-txt" type="button" class="btn btn-secondary" disabled>
+Descargar TXT
+</button> </div> </form> <div id="vlsm-results" class="mt-8"></div> </section> <script type="module" src="./_astro/VlsmCalculator.astro_astro_type_script_index_0_lang.DVFUquMu.js"></script> <script type="module">const l="cidr-vlsm:lastTab",s=["cidr","vlsm"];function r(t){return t!==null&&s.includes(t)}function i(t){document.querySelectorAll("[data-tab-trigger]").forEach(e=>{const a=e.dataset.tabTrigger===t;e.classList.toggle("active",a),e.setAttribute("aria-selected",String(a))}),document.querySelectorAll("[data-tab-panel]").forEach(e=>{e.classList.toggle("hidden",e.dataset.tabPanel!==t)});try{localStorage.setItem(l,t)}catch{}}function n(){const t=document.querySelectorAll("[data-tab-trigger]");if(t.length===0)return;t.forEach(a=>{a.addEventListener("click",()=>{const c=a.dataset.tabTrigger;r(c)&&i(c)})});let e="cidr";try{const a=localStorage.getItem(l);r(a)&&(e=a)}catch{}i(e)}n();</script>  </main> <footer class="mx-auto max-w-5xl px-4 pb-10 text-xs text-muted">
+Conmutación y enturamiento de redes de computadoras :)
+</footer> </body></html>

@@ -9,6 +9,7 @@
 /** Escapa un valor para CSV: comillas, comas y saltos de línea. */
 function csvEscape(value: string | number): string {
   const s = String(value);
+  // RFC 4180: si contiene ", , \n o ; → envolver en comillas y doblar las ".
   if (/[",\n;]/.test(s)) {
     return `"${s.replace(/"/g, '""')}"`;
   }
@@ -21,7 +22,7 @@ export function rowsToCsv(headers: string[], rows: (string | number)[][]): strin
   for (const row of rows) {
     lines.push(row.map(csvEscape).join(','));
   }
-  // CRLF para máxima compatibilidad con Excel/Windows.
+  // CRLF para máxima compatibilidad con Excel en Windows.
   return lines.join('\r\n');
 }
 
@@ -42,19 +43,21 @@ export function downloadFile(
   content: string,
   mime: string = 'text/plain;charset=utf-8',
 ): void {
-  // BOM para que Excel detecte UTF-8 correctamente al abrir CSV.
+  // BOM (\uFEFF) al inicio para que Excel detecte UTF-8 correctamente
+  // al abrir el CSV sin pasar por el wizard de importación.
   const blob = new Blob(['\uFEFF', content], { type: mime });
   const url = URL.createObjectURL(blob);
 
+  // Truco estándar para forzar descarga: ancla sintética con `download`.
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
-  // El enlace debe estar en el DOM para que Firefox lo respete.
+  // Firefox exige que el ancla esté en el DOM antes del .click().
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 
-  // Liberamos memoria.
+  // Liberamos la URL temporal para no fugar memoria.
   URL.revokeObjectURL(url);
 }
 

@@ -10,6 +10,8 @@ node_modules/
 # Build de Astro
 dist/
 .astro/
+# Excepción: la copia dentro de distributable/ SÍ se commitea (es el binario portable).
+!distributable/dist/
 
 # Sistema
 .DS_Store
@@ -23,3 +25,5 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+walkthrough.md

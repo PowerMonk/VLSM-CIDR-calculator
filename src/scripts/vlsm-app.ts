@@ -54,13 +54,15 @@ function escape(value: string): string {
 
 /**
  * Construye una fila dinámica para la lista de requerimientos.
- * Se usa tanto al inicializar como al pulsar "Añadir fila".
+ * Se usa al inicializar (1 fila vacía) y al pulsar "Añadir fila".
  */
 function buildRequirementRow(label = '', hosts = ''): HTMLElement {
   const row = document.createElement('div');
   row.className =
     'grid grid-cols-[1fr_2fr_auto] gap-2 items-center vlsm-row';
   row.dataset.row = '';
+  // Los inputs llevan name="label"/name="hosts" para que el submit los
+  // recoja con FormData (ver handleSubmit).
   row.innerHTML = `
     <input
       type="text"
@@ -89,14 +91,15 @@ function buildRequirementRow(label = '', hosts = ''): HTMLElement {
 }
 
 /**
- * Conecta los listeners internos de cada fila (eliminar). Se llama después
- * de pintar las filas para que `×` funcione siempre, incluso tras "Añadir".
+ * Conecta los listeners de los botones "×" en cada fila.
+ * Hay que llamarla cada vez que se re-pintan filas (init o "Añadir").
  */
 function wireRowButtons(list: HTMLElement): void {
   list.querySelectorAll<HTMLButtonElement>('.vlsm-remove').forEach((btn) => {
     btn.addEventListener('click', () => {
       const row = btn.closest<HTMLElement>('[data-row]');
-      // Mantén siempre al menos una fila.
+      // Salva-guardas: nunca dejamos la lista sin filas (mínimo 1)
+      // para que el form siempre sea enviable.
       if (list.children.length > 1 && row) row.remove();
     });
   });
@@ -105,9 +108,12 @@ function wireRowButtons(list: HTMLElement): void {
 /** Render del bloque "Espacio disponible vs requerido". */
 function renderValidation(plan: VlsmPlan | null, error: string | null): string {
   if (error) {
+    // Modo error: solo mostramos la alerta roja con el mensaje.
     return `<div class="alert-error mb-4">${escape(error)}</div>`;
   }
   if (!plan) return '';
+  // Verde si cabe, rojo si no (esto último no debería pasar: lo cortamos
+  // antes con VlsmSpaceError, pero lo dejamos por defensa).
   const ok = plan.totalNeeded <= plan.availableAddresses;
   const cls = ok ? 'alert-ok' : 'alert-error';
   return `
@@ -193,28 +199,30 @@ function renderAssignments(plan: VlsmPlan): string {
   `;
 }
 
-/** Recolecta filas y llama al algoritmo. */
+/** Recolecta filas del formulario y llama al algoritmo. */
 function handleSubmit(form: HTMLFormElement, results: HTMLElement): void {
+  // IP base: la sacamos por `name`, no iterando filas (es el único campo fuera).
   const data = new FormData(form);
   const baseNetwork = String(data.get('baseNetwork') ?? '').trim();
 
+  // Requerimientos: recorremos cada `[data-row]` y leemos sus dos inputs.
+  // Las filas vacías (sin hosts) se ignoran para no contaminar el cálculo.
   const requirements: { label?: string; hosts: number }[] = [];
-  let rowIdx = 0;
   form.querySelectorAll<HTMLElement>('[data-row]').forEach((row) => {
     const labelInput = row.querySelector<HTMLInputElement>('input[name="label"]');
     const hostsInput = row.querySelector<HTMLInputElement>('input[name="hosts"]');
     const hosts = Number(hostsInput?.value ?? '');
-    if (!hostsInput?.value.trim()) return; // fila vacía → la ignoramos
+    if (!hostsInput?.value.trim()) return; // fila vacía → ignorar
     requirements.push({
       label: labelInput?.value.trim() || undefined,
       hosts,
     });
-    rowIdx++;
   });
 
   try {
     const plan = calculateVlsm({ baseNetwork, requirements });
     lastPlan = plan;
+    // Render por secciones: validación → tabla ajuste → tabla asignación.
     results.innerHTML =
       renderValidation(plan, null) +
       renderRequirements(plan) +
@@ -222,6 +230,7 @@ function handleSubmit(form: HTMLFormElement, results: HTMLElement): void {
     toggleDownloadButtons(true);
   } catch (err) {
     lastPlan = null;
+    // Distinguimos errores para mostrar el mensaje correcto en la UI.
     let msg: string;
     if (err instanceof VlsmSpaceError) {
       msg = err.message;
