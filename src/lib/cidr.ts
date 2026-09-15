@@ -63,22 +63,26 @@ function normalizeCidrInput(input: CidrInput): {
 export function calculateFixedSubnets(input: CidrInput): FixedSubnetPlan {
   const { baseIpInt, prefix, k } = normalizeCidrInput(input);
 
-  // Bits prestados: mínimo b tal que 2^b >= K.
+  // Paso 1: bits prestados `b` tales que `2^b >= K` (mínimos para que
+  // entren las subredes pedidas).
   const bitsBorrowed = ceilLog2(k);
   const newPrefix = prefix + bitsBorrowed;
 
+  // Salvaguarda: si la suma se pasa de /32 no hay forma de dividir más.
   if (newPrefix > 32) {
     throw new Ipv4Error(
       `No es posible obtener ${k} subredes: el nuevo prefijo /${newPrefix} excede /32.`,
     );
   }
 
+  // Paso 2: tamaño de cada bloque y total real generado.
   const blockSize = 2 ** (32 - newPrefix);
   const totalSubnets = 2 ** bitsBorrowed;
 
+  // Paso 3: generar todas las subredes contiguas.
+  // Cada una arranca en `base + i*blockSize` y termina `blockSize - 1` después.
   const subnets: FixedSubnet[] = [];
   for (let i = 0; i < totalSubnets; i++) {
-    // Cada subred arranca en baseIpInt + i * blockSize.
     const firstIpInt = (baseIpInt + i * blockSize) >>> 0;
     const lastIpInt = (firstIpInt + blockSize - 1) >>> 0;
     subnets.push({

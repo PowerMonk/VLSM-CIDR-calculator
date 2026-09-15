@@ -83,6 +83,10 @@ El resultado estático queda en `dist/`. Todo el JS y CSS queda embebido o se si
 
 Para la arquitectura completa, descripción archivo-por-archivo y los algoritmos paso a paso, ver [`docs.md`](./docs.md).
 
+## Walkthrough para estudiarte el proyecto
+
+Si querés entender el código de punta a punta, seguí el orden recomendado en [`walkthrough.md`](./walkthrough.md). Incluye preguntas de autoevaluación en cada paso.
+
 ## Casos de prueba (classroom)
 
 - **CIDR**: `38.120.32.110` + `K = 200` → bits prestados `b = 8`, prefijo `/16`, 256 subredes de 65 536 direcciones.

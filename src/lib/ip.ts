@@ -11,34 +11,35 @@
  *   - El "tamaño" de una subred es siempre `2^(32 - prefijo)`.
  */
 
-import { Ipv4Error } from './types';
+import { Ipv4Error } from "./types";
 
 /** Cuatro octetos en el rango 0..255. */
 export type Octets = [number, number, number, number];
 
 /** Valida una cadena IPv4 en dotted-decimal y devuelve sus octetos. */
 export function parseIpv4(input: string): Octets {
-  const trimmed = input.trim();
+  const trimmed = input.trim(); // quita los white spaces y line terminators
   if (!trimmed) {
-    throw new Ipv4Error('La dirección IP está vacía.');
+    throw new Ipv4Error("La dirección IP está vacía.");
   }
-  const parts = trimmed.split('.');
+  const parts = trimmed.split(".");
   if (parts.length !== 4) {
     throw new Ipv4Error(
       `La IP "${trimmed}" no tiene 4 octetos separados por puntos.`,
     );
   }
   const octets: number[] = [];
+  // parts son los strings de cada octeto
   for (const part of parts) {
-    // Rechaza vacíos, espacios internos, o algo que no sean solo dígitos.
+    // Solo dígitos: rechaza vacíos, espacios internos, signos, decimales.
     if (!/^\d+$/.test(part)) {
       throw new Ipv4Error(`El octeto "${part}" no es numérico.`);
     }
-    const n = Number(part);
+    const n = Number(part); // casting a número
     if (n < 0 || n > 255) {
       throw new Ipv4Error(`El octeto "${part}" está fuera del rango 0..255.`);
     }
-    octets.push(n);
+    octets.push(n); // push al array de octetos
   }
   return octets as Octets;
 }
@@ -46,9 +47,10 @@ export function parseIpv4(input: string): Octets {
 /** Convierte `X.X.X.X` a entero sin signo de 32 bits. */
 export function ipToInt(ip: string): number {
   const [a, b, c, d] = parseIpv4(ip);
-  // Multiplicar por 256 es lo mismo que desplazar 8 bits a la izquierda.
-  // Usamos `>>> 0` para garantizar un UInt32 incluso si JS decide signo.
-  return (((a * 256 + b) * 256 + c) * 256 + d) >>> 0;
+  // Cada octeto ocupa 8 bits. Sumarlos desplazando es lo mismo que
+  // concatenarlos en binario. El `>>> 0` final fuerza UInt32 (evita
+  // que JS firme el número si supera 2^31).
+  return (((a * 256 + b) * 256 + c) * 256 + d) >>> 0; // multiplicar por 256 = desplazar 8 bits a la izquierda
 }
 
 /** Convierte un entero sin signo de 32 bits a formato dotted-decimal. */
@@ -57,6 +59,7 @@ export function intToIp(value: number): string {
     throw new Ipv4Error(`Valor ${value} no es un UInt32 válido.`);
   }
   const v = value >>> 0;
+  // Extrae cada octeto con `& 0xff` (256 = 2^8) y shifts de 24/16/8/0 bits.
   const a = (v >>> 24) & 0xff;
   const b = (v >>> 16) & 0xff;
   const c = (v >>> 8) & 0xff;
@@ -76,6 +79,8 @@ export function intToIp(value: number): string {
  */
 export function getDefaultPrefix(ip: string): number {
   const [first] = parseIpv4(ip);
+  // Tabla clásica: A=1..126 → /8, B=128..191 → /16, C=192..223 → /24.
+  // 127 (loopback) y 224+ (multicast/experimental) no entran.
   if (first >= 1 && first <= 126) return 8;
   if (first >= 128 && first <= 191) return 16;
   if (first >= 192 && first <= 223) return 24;
@@ -169,25 +174,26 @@ export function nextPowerOfTwo(n: number): number {
 
 /**
  * Parsea una IP con prefijo opcional: `192.168.1.0`, `192.168.1.0/24`,
- * `192.168.1.0 / 24` (con espacios). Si no hay prefijo devuelve `null`.
+ * `172.18.16.0 / 16` (con espacios). Si no hay prefijo devuelve `null`.
  */
-export function parseIpWithOptionalPrefix(
-  input: string,
-): { ip: string; prefix: number | null } {
+export function parseIpWithOptionalPrefix(input: string): {
+  ip: string;
+  prefix: number | null;
+} {
   const trimmed = input.trim();
   if (!trimmed) {
-    throw new Ipv4Error('La dirección IP está vacía.');
+    throw new Ipv4Error("La dirección IP está vacía.");
   }
-  // Acepta "ip/24" o "ip / 24".
+  // Regex: captura "ip" (lazy) + "/" opcional con espacios + número al final.
   const match = trimmed.match(/^(.+?)\s*\/\s*(\d+)$/);
   if (match) {
     const [, ip, prefStr] = match;
     const prefix = validatePrefix(Number(prefStr));
-    // Valida que la parte izquierda siga siendo una IPv4 válida.
+    // Re-validamos la parte izquierda como IPv4 (sigue siendo obligatorio).
     parseIpv4(ip);
     return { ip: ip.trim(), prefix };
   }
-  // Solo IP, sin prefijo.
+  // Sin prefijo: devolvemos la IP tal cual y `null` para que el caller decida.
   parseIpv4(trimmed);
   return { ip: trimmed, prefix: null };
 }

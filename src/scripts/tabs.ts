@@ -50,6 +50,7 @@ export function initTabs(): void {
   );
   if (triggers.length === 0) return;
 
+  // Cada botón activa su panel al hacer click.
   triggers.forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.tabTrigger;
@@ -57,13 +58,14 @@ export function initTabs(): void {
     });
   });
 
-  // Restaurar selección.
+  // Restaurar selección desde localStorage (con fallback a 'cidr').
   let initial: TabId = 'cidr';
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (isTabId(saved)) initial = saved;
   } catch {
-    /* ignorar */
+    // localStorage puede estar deshabilitado (file:// en某些 navegadores).
+    // No es crítico: caemos al default.
   }
   activate(initial);
 }

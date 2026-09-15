@@ -49,6 +49,7 @@ function escape(value: string): string {
 
 /** Renderiza el resumen (bits prestados, prefijo nuevo, etc.). */
 function renderSummary(plan: FixedSubnetPlan): string {
+  // Tarjetas de métricas + alerta informativa con la red base y totales.
   return `
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
       <div class="border border-line p-3 rounded">
@@ -121,23 +122,26 @@ function renderError(message: string): string {
  * - Renderiza el resultado o el error.
  */
 function handleSubmit(form: HTMLFormElement, results: HTMLElement): void {
+  // FormData: API estándar del navegador para leer todos los inputs por `name`.
   const data = new FormData(form);
   const ip = String(data.get('ip') ?? '').trim();
   const kStr = String(data.get('k') ?? '').trim();
   const prefixStr = String(data.get('prefix') ?? '').trim();
 
   const k = Number(kStr);
-  // Prefijo opcional: si el usuario lo deja vacío, lo pasamos como undefined
-  // y la librería usará la máscara de clase A/B/C.
+  // Prefijo opcional: vacío → undefined → la librería aplica clase A/B/C.
   const prefix = prefixStr === '' ? undefined : Number(prefixStr);
 
   try {
     const plan = calculateFixedSubnets({ ip, k, prefix });
+    // Cacheamos el plan para que los botones de descarga lo lean sin recalcular.
     lastPlan = plan;
     results.innerHTML = renderSummary(plan) + renderTable(plan.subnets);
     toggleDownloadButtons(true);
   } catch (err) {
     lastPlan = null;
+    // Ipv4Error trae mensaje útil; cualquier otro error lo ocultamos tras
+    // un mensaje genérico para no filtrar detalles al usuario final.
     const message =
       err instanceof Ipv4Error ? err.message : 'Error inesperado al calcular.';
     results.innerHTML = renderError(message);
@@ -172,11 +176,13 @@ function downloadCsv(): void {
 function downloadTxt(): void {
   if (!lastPlan) return;
   const lines: string[] = [];
+  // Cabecera con metadatos del cálculo para que el TXT sea autoexplicativo.
   lines.push(`# Calculadora CIDR — ${lastPlan.baseNetwork}`);
   lines.push(
     `# Prefijo original: /${lastPlan.originalPrefix} · Bits prestados: ${lastPlan.bitsBorrowed} · Prefijo nuevo: /${lastPlan.newPrefix} · Bloque: ${lastPlan.blockSize}`,
   );
   lines.push('');
+  // Cuerpo: separado por tabuladores para que abra prolijo en cualquier editor.
   lines.push(['#', 'Red', 'Broadcast', 'Prefijo', 'Rango'].join('\t'));
   for (const s of lastPlan.subnets) {
     lines.push(
