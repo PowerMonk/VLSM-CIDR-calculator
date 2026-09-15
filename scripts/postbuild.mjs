@@ -71,7 +71,15 @@ async function main() {
     }
   }
 
-  // 4) Guardar.
+  // 4) Marcador de versión visible al hacer "View Source" en el navegador.
+  //    Si el usuario lo ve, esta cargando el HTML nuevo y NO es cache del navegador.
+  const buildTag = `<!-- build:vlsm-user-order-${Date.now()} -->\n`;
+  if (!html.startsWith('<!-- build:')) {
+    html = buildTag + html;
+    console.log('[postbuild] Marcador de version anadido al HTML.');
+  }
+
+  // 5) Guardar.
   await writeFile(HTML_PATH, html, 'utf8');
   console.log('[postbuild] Listo. dist/index.html corre bajo file:// sin imports externos.');
 }

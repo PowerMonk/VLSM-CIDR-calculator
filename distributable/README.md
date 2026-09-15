@@ -17,17 +17,25 @@ distributable/
 2. Doble clic en **`abrir-calculadora.bat`**.
 3. Se abrirá `dist/index.html` en tu navegador predeterminado.
 
+## Cambio reciente: VLSM en orden de entrada
+
+A partir de esta versión, VLSM asigna las subredes **en el orden que escribiste los requerimientos** (A, B, C, D, E), no de mayor a menor. El ajuste a potencia de 2 y la validación de capacidad se siguen aplicando.
+
 ## ¿Por qué esta versión sí funciona bajo `file://`?
 
 Astro/Vite por defecto emiten varios `<script type="module" src="./_astro/X.js">`
-que comparten chunks entre sí (p.ej. `download.xxx.js`). Al abrir el HTML
-directamente desde el sistema de archivos, los navegadores bloquean esos
-imports por CORS y la app no ejecuta nada.
+que comparten chunks entre sí. Al abrir el HTML directamente desde el sistema
+de archivos, los navegadores bloquean esos imports por CORS y la app no
+ejecuta nada.
 
 El `dist/index.html` de esta versión tiene **todo el JavaScript inlineado en
 un único `<script type="module">`** dentro del propio HTML, así que no hay
-requests cruzados ni imports entre módulos y todo corre en el mismo origen.
-Sólo el CSS queda como archivo aparte.
+requests cruzados ni imports entre módulos.
+
+Además, trae **meta tags `Cache-Control: no-cache`** para evitar servir una
+versión vieja desde la caché del navegador, y el `.bat` agrega un
+**query-string `?v=RANDOM`** al URL para forzar que cada corrida sea
+tratada como nueva (anti-cache adicional).
 
 ## Reconstruir (opcional)
 
