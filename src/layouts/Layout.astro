@@ -33,4 +33,20 @@ const {
       Conmutación y enturamiento de redes de computadoras :)
     </footer>
   </body>
+
+  <!--
+    Unico punto de entrada de JS. Astro lo bundlea en un solo archivo
+    (gracias a inlineDynamicImports + manualChunks en astro.config.mjs)
+    para que no haya imports entre bundles. Asi el dist funciona tanto
+    sirviendo en HTTP como abriendolo con file:// desde el .bat.
+  -->
+  <script>
+    import { initTabs } from '../scripts/tabs';
+    import { initCidr } from '../scripts/cidr-app';
+    import { initVlsm } from '../scripts/vlsm-app';
+
+    initTabs();
+    initCidr();
+    initVlsm();
+  </script>
 </html>
